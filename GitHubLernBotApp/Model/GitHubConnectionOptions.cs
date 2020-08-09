@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace GitHubLernBotApp
+namespace GitHubLernBotApp.Model
 {
     public class GitHubConnectionOptions
     {

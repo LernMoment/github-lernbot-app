@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Options;
+using GitHubLernBotApp.Model;
 
 namespace GitHubLernBotApp
 {
