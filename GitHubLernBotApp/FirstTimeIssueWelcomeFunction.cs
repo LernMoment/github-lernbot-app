@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Options;
 using GitHubLernBotApp.Model;
+using System.Net.Http;
 
 namespace GitHubLernBotApp
 {
@@ -23,12 +24,22 @@ namespace GitHubLernBotApp
 
         [FunctionName("FirstTimeIssueWelcome")]
         public async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequest req,
-            ILogger log)
+            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequestMessage req,
+            ILogger logger)
         {
-            log.LogInformation("C# HTTP trigger function processed a request.");
+            GitHubWebHookEvent webHookRequest = null;
+            try
+            {
+                webHookRequest = new GitHubWebHookEvent(_gitHubConfiguration.WebHookSecret, req.Headers, req.Content);
+            }
+            catch (InvalidOperationException ioex)
+            {
+                logger.LogError(ioex, "Could not create instance of GitHubWebHookEvent!");
+                return new BadRequestObjectResult("This only works from github webhooks!");
+            }
+            logger.LogInformation($"Webhook delivery: Delivery id = '{webHookRequest.DeliveryId}', Event name = '{webHookRequest.EventName}'");
 
-            string responseMessage = $"Welcome to '{_gitHubConfiguration.AppName}'";
+            string responseMessage = $"Webhook delivery: Delivery id = '{webHookRequest.DeliveryId}', Event name = '{webHookRequest.EventName}'";
 
             return new OkObjectResult(responseMessage);
         }
