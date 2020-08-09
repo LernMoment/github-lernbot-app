@@ -1,4 +1,5 @@
 ﻿using GitHubLernBotApp.Model;
+using GitHubLernBotApp.Services;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -35,6 +36,8 @@ namespace GitHubLernBotApp
                     .GetSection(GitHubConnectionOptions.GitHub)
                     .Bind(gitHubSettings);
                 });
+
+            builder.Services.AddScoped<IGitHubClientFactory, GitHubClientFactory>();
         }
     }
 }
