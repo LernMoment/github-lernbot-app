@@ -1,25 +1,23 @@
 using System;
-using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using Microsoft.Extensions.Options;
-using GitHubLernBotApp.Model;
 using System.Net.Http;
 using System.Net;
-using Octokit;
-using GitHubLernBotApp.Services;
 using System.Linq;
 using System.Text;
+using GitHubLernBotApp.Model;
+using GitHubLernBotApp.Services;
+using Octokit;
 
 namespace GitHubLernBotApp
 {
     public class FirstTimeIssueWelcomeFunction
     {
+        private const string _textFilePath = ".github";
+        private const string _firstIssueWelcomeFileName = "welcome-first-issue.md"; 
         private readonly GitHubConnectionOptions _gitHubConfiguration;
         private readonly IGitHubClientFactory _clientFactory;
 
@@ -84,7 +82,7 @@ namespace GitHubLernBotApp
                         var issueCountForCreator = issues.Where(i => i.PullRequest == null).Count();
                         if (issueCountForCreator == 1)
                         {
-                            var welcomeFileResponse = await client.Repository.Content.GetRawContent(ownerName, respositoryName, ".github/welcome-first-issue.md");
+                            var welcomeFileResponse = await client.Repository.Content.GetRawContent(ownerName, respositoryName, $"{_textFilePath}/{_firstIssueWelcomeFileName}");
                             var welcomeFileContent = $"@{creatorName} " + Encoding.Default.GetString(welcomeFileResponse);
 
                             var issueNumber = payloadObject.Issue.Number;
