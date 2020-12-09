@@ -67,37 +67,16 @@ namespace GitHubLernBotApp
                     {
                         var client = await _clientFactory.GetInstallationClient(payloadObject.Installation.Id);
 
-                        var creatorName = payloadObject.Issue.User.Login;
-                        var respositoryName = payloadObject.Repository.Name;
-                        var ownerName = payloadObject.Repository.Owner.Login;
+                        int issueCountForCreator = await GetAmountOfIssuesForUser(client, payloadObject.Issue.User.Login, payloadObject.Repository);
 
-                        var allIssuesForUser = new RepositoryIssueRequest
-                        {
-                            Creator = creatorName,
-                            State = ItemStateFilter.All,
-                            Filter = IssueFilter.All
-                        };
-
-                        var issues = await client.Issue.GetAllForRepository(ownerName, respositoryName, allIssuesForUser);
-                        var issueCountForCreator = issues.Where(i => i.PullRequest == null).Count();
                         if (issueCountForCreator == 1)
                         {
-                            var welcomeFileResponse = await client.Repository.Content.GetRawContent(ownerName, respositoryName, $"{_textFilePath}/{_firstIssueWelcomeFileName}");
-                            var welcomeFileContent = $"@{creatorName} " + Encoding.Default.GetString(welcomeFileResponse);
-
-                            var issueNumber = payloadObject.Issue.Number;
-                            var repositoryId = payloadObject.Repository.Id;
-                            _ = await client
-                                        .Issue.Comment
-                                        .Create(repositoryId, issueNumber, welcomeFileContent);
-
-                            logger.LogInformation($"Commented Issue: '{issueNumber}' with this message: '{welcomeFileContent}'");
+                            await PostWelcomeMessage(client, payloadObject.Issue, payloadObject.Repository);
                         }
                         else
                         {
-                            logger.LogInformation($"Issue-Creator: '{creatorName}' is not a first time contributor!");
+                            logger.LogInformation($"Issue-Creator: '{payloadObject.Issue.User.Login}' is not a first time contributor!");
                         }
-
                     }
                     catch (Exception ex)
                     {
@@ -108,6 +87,36 @@ namespace GitHubLernBotApp
             }
 
             return req.CreateResponse(HttpStatusCode.OK);
+        }
+
+        private static async Task<int> GetAmountOfIssuesForUser(GitHubClient client, string creatorName, Repository repo)
+        {
+            var allIssuesForUser = new RepositoryIssueRequest
+            {
+                Creator = creatorName,
+                State = ItemStateFilter.All,
+                Filter = IssueFilter.All
+            };
+
+            var issues = await client.Issue.GetAllForRepository(repo.Owner.Login, repo.Name, allIssuesForUser);
+
+            // PullRequest are also Issues, but we are only looking for "real" issues
+            return issues.Where(i => i.PullRequest == null).Count();
+        }
+
+        private async Task PostWelcomeMessage(GitHubClient client, Issue issue, Repository repo)
+        {
+            var welcomeFileResponse = await client.Repository.Content.GetRawContent(
+                repo.Owner.Login, 
+                repo.Name, 
+                $"{_textFilePath}/{_firstIssueWelcomeFileName}");
+            
+            var welcomeFileContent = $"@{issue.User.Login} " + Encoding.Default.GetString(welcomeFileResponse);
+
+            _ = await client
+                        .Issue.Comment
+                        .Create(repo.Id, issue.Number, welcomeFileContent);
+            return;
         }
     }
 }
