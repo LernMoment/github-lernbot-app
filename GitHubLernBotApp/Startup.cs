@@ -38,6 +38,7 @@ namespace GitHubLernBotApp
                 });
 
             builder.Services.AddScoped<IGitHubClientFactory, GitHubClientFactory>();
+            builder.Services.AddScoped<ILernBot, LernBot>();
         }
     }
 }
