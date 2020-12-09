@@ -29,7 +29,7 @@ namespace GitHubLernBotApp
 
         [FunctionName("FirstTimeIssueWelcome")]
         public async Task<HttpResponseMessage> Run(
-            [HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequestMessage req,
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequestMessage req,
             ILogger logger)
         {
             GitHubWebHookEvent webHookRequest = null;
