@@ -16,15 +16,13 @@ namespace GitHubLernBotApp
 {
     public class FirstTimeIssueWelcomeFunction
     {
-        private const string _textFilePath = ".github";
-        private const string _firstIssueWelcomeFileName = "welcome-first-issue.md"; 
         private readonly GitHubConnectionOptions _gitHubConfiguration;
-        private readonly IGitHubClientFactory _clientFactory;
+        private readonly ILernBot _bot;
 
-        public FirstTimeIssueWelcomeFunction(IOptions<GitHubConnectionOptions> config, IGitHubClientFactory clienFactory)
+        public FirstTimeIssueWelcomeFunction(IOptions<GitHubConnectionOptions> config, ILernBot bot)
         {
             _gitHubConfiguration = config.Value;
-            _clientFactory = clienFactory;
+            _bot = bot;
         }
 
         [FunctionName("FirstTimeIssueWelcome")]
@@ -32,7 +30,7 @@ namespace GitHubLernBotApp
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = null)] HttpRequestMessage req,
             ILogger logger)
         {
-            GitHubWebHookEvent webHookRequest = null;
+            GitHubWebHookEvent webHookRequest;
             try
             {
                 webHookRequest = new GitHubWebHookEvent(_gitHubConfiguration.WebHookSecret, req.Headers, req.Content);
@@ -65,15 +63,9 @@ namespace GitHubLernBotApp
                 {
                     try
                     {
-                        var client = await _clientFactory.GetInstallationClient(payloadObject.Installation.Id);
+                        var isFirstTime = await _bot.WelcomeUserIfFirstTimeContributor(payloadObject.Installation.Id, payloadObject.Issue, payloadObject.Repository);
 
-                        int issueCountForCreator = await GetAmountOfIssuesForUser(client, payloadObject.Issue.User.Login, payloadObject.Repository);
-
-                        if (issueCountForCreator == 1)
-                        {
-                            await PostWelcomeMessage(client, payloadObject.Issue, payloadObject.Repository);
-                        }
-                        else
+                        if(!isFirstTime)
                         {
                             logger.LogInformation($"Issue-Creator: '{payloadObject.Issue.User.Login}' is not a first time contributor!");
                         }
@@ -87,36 +79,6 @@ namespace GitHubLernBotApp
             }
 
             return req.CreateResponse(HttpStatusCode.OK);
-        }
-
-        private static async Task<int> GetAmountOfIssuesForUser(GitHubClient client, string creatorName, Repository repo)
-        {
-            var allIssuesForUser = new RepositoryIssueRequest
-            {
-                Creator = creatorName,
-                State = ItemStateFilter.All,
-                Filter = IssueFilter.All
-            };
-
-            var issues = await client.Issue.GetAllForRepository(repo.Owner.Login, repo.Name, allIssuesForUser);
-
-            // PullRequest are also Issues, but we are only looking for "real" issues
-            return issues.Where(i => i.PullRequest == null).Count();
-        }
-
-        private async Task PostWelcomeMessage(GitHubClient client, Issue issue, Repository repo)
-        {
-            var welcomeFileResponse = await client.Repository.Content.GetRawContent(
-                repo.Owner.Login, 
-                repo.Name, 
-                $"{_textFilePath}/{_firstIssueWelcomeFileName}");
-            
-            var welcomeFileContent = $"@{issue.User.Login} " + Encoding.Default.GetString(welcomeFileResponse);
-
-            _ = await client
-                        .Issue.Comment
-                        .Create(repo.Id, issue.Number, welcomeFileContent);
-            return;
         }
     }
 }
