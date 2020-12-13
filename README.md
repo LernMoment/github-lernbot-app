@@ -2,7 +2,7 @@
 Ein Bot der dich beim Kennenlernen von GitHub unterstützt.
 
 ## Funktionalitäten
-Momentan kann der Bot eine im jeweiligen Projekt definierte Nachricht als *Issue* erstellen, wenn ein Benutzer zum ersten Mal ein Issue an dem Verzeichnis eröffnet. Darüberhinaus würde ich gerne eine komplette "Lernanwendung" damit erstellen. Der Bot soll also ähnlich wie das [Github Learning Lab](https://lab.github.com) eine interaktive Möglichkeiten bieten um Teilnehmer mit GitHub bekannt zu machen.
+Momentan kann der Bot eine im jeweiligen Projekt definierte Nachricht als *Issue* erstellen, wenn ein Benutzer zum ersten Mal ein Issue an dem Verzeichnis eröffnet. Darüberhinaus würde ich gerne eine komplette "Lernanwendung" damit erstellen. Der Bot soll also ähnlich wie das [Github Learning Lab](https://lab.github.com) eine interaktive Möglichkeiten bieten um Teilnehmer mit GitHub bekannt zu machen. Eine scheinbar noch ausgefeiltere (insbesondere bezogen auf die Storyline) Version ist [Online DevOps Dojo](https://dxc-technology.github.io/about-devops-dojo/). 
 
 ## Entwicklung
 Ich habe das Projekt gestartet um mich etwas mehr in Themen rund um Webentwicklung mit .NET Core einzuarbeiten. Daher ist dieser Bot in mehreren Iterationen entstanden und ich werde ihn nach und nach mit anderen Technologien weiter entwickeln.
